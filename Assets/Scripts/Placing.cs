@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Photon.Pun;
+using Photon.Realtime;
 
-public class Placing : MonoBehaviour
+public class Placing : MonoBehaviourPun
 {
 	public GameObject[] inventory;
 	private GameObject cell;
@@ -40,6 +42,22 @@ public class Placing : MonoBehaviour
 		
 		temp = Instantiate(hover, pos, Quaternion.identity);
 		temp.transform.localEulerAngles = rotations[rotIndex];
+    }
+
+	[PunRPC]
+    void RemoveCell(Vector3 celluabad, PhotonMessageInfo info)
+    {
+        Debug.Log("got removecell");
+        Vector3 start = celluabad;
+        start.y = -1000; // the ray must start at a very low y coordinate...
+        RaycastHit[] hits = Physics.RaycastAll(start, Vector3.up); // and go up
+        foreach (RaycastHit hit in hits){ // check the few objects returned
+            // find the position difference in all 3 axes
+            Vector3 diff = celluabad - hit.transform.position;
+            if (diff.magnitude < 1f){ // accept a small error margin
+                hit.transform.GetComponent<Cell>().Delete(true);
+            }
+        }
     }
 
     // Update is called once per frame
@@ -85,7 +103,7 @@ public class Placing : MonoBehaviour
 				if(Physics.Raycast(this.transform.position, this.transform.TransformDirection(Vector3.forward), out RaycastHit hitInfo, reach, ignore)) {
 					Debug.DrawRay(this.transform.position, this.transform.TransformDirection(Vector3.forward) * hitInfo.distance, Color.red);
 					if(hitInfo.transform.tag == "cell" && hitInfo.transform.gameObject.name != "ground") {
-						hitInfo.transform.gameObject.GetComponent<Cell>().Delete(true);
+						photonView.RPC("RemoveCell", RpcTarget.All, hitInfo.transform.position);
 					}
 				}
 			}

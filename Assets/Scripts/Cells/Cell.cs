@@ -66,7 +66,7 @@ public class Cell : MonoBehaviour
     }
 
     virtual public void Delete(bool destroy) {
-        CellFunctions.cellGrid[(int)position.x, (int)position.y, (int)position.y] = null;
+        CellFunctions.cellGrid[(int)position.x, (int)position.y, (int)position.z] = null;
         this.gameObject.SetActive(false);
         this.deleted = true;
         if (destroy) {

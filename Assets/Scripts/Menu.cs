@@ -2,6 +2,8 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using Photon.Pun;
+using Photon.Realtime;
 public class Menu : MonoBehaviour
 {
 	public bool inMenu = false;
@@ -36,6 +38,7 @@ public class Menu : MonoBehaviour
 		}
     }
 	public void Quit() {
+		PhotonNetwork.LeaveRoom();
 		Application.Quit();
 	}
 	public void Sensitivity() {
@@ -45,6 +48,7 @@ public class Menu : MonoBehaviour
 		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 	}
 	public void Back() {
+		PhotonNetwork.LeaveRoom();
 		SceneManager.LoadScene(0);
 	}
 	public void noMenu() {

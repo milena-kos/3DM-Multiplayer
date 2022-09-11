@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 public class mainMenu : MonoBehaviour
 {
     public void Play() {
+		PlayerPrefs.SetInt("Multiplayer", 0);
 		SceneManager.LoadScene(2);
 	}
 	public void Back() {

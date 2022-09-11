@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
+using Photon.Pun;
+using Photon.Realtime;
 
-public class GridManager : MonoBehaviour
+public class GridManager : MonoBehaviourPun
 {
     public static GridManager instance;
+
+    public PhotonView photonView;
 
 	public GameObject player;
 	
@@ -51,6 +55,7 @@ public class GridManager : MonoBehaviour
 
     private void Awake()
     {
+        photonView = GetComponent<PhotonView>();
         playSimulation = false;
         stepSimulation = false;
         subTick = false;
@@ -132,7 +137,22 @@ public class GridManager : MonoBehaviour
         initialEnemyCount = enemyCount;
     }
 
+    [PunRPC]
+    void SpawnCell(string c, Vector3 position, Vector3 rotation, Direction_e rotation2, bool generated, PhotonMessageInfo info)
+    {
+        if (!photonView.IsMine) {
+            Debug.Log("got spawncell");
+            Cell cell = PhotonNetwork.Instantiate(c, position, Quaternion.Euler(rotation.x, rotation.y, rotation.z), 0).GetComponent<Cell>();
+            cell.Setup(position, rotation2, generated);
+            cell.oldPosition = position;
+            cell.oldRotation = (int)rotation2;
+            cell.transform.eulerAngles = rotation;
+            cell.name = CellFunctions.cellList.Count + "";
+        }
+    }
+    
     public Cell SpawnCell(CellType_e cellType, Vector3 position, Vector3 rotation, Direction_e rotation2, bool generated) {
+        
         Cell cell = Instantiate(player.GetComponent<Placing>().inventory[(int)cellType]).GetComponent<Cell>();
         cell.transform.position = new Vector3(position.x, position.y, position.z);
         cell.Setup(position, rotation2, generated);
@@ -140,10 +160,11 @@ public class GridManager : MonoBehaviour
         cell.oldRotation = (int)rotation2;
         cell.transform.eulerAngles = rotation;
         cell.name = CellFunctions.cellList.Count + "";
-
         return cell;
     }
 	public Cell SpawnCell(GameObject c, Vector3 position, Vector3 rotation, Direction_e rotation2, bool generated) {
+        Debug.Log("sending spawncell");
+        photonView.RPC("SpawnCell", RpcTarget.All, c.name, position, rotation, rotation2, generated);
         Cell cell = Instantiate(c).GetComponent<Cell>();
         cell.transform.position = new Vector3(position.x, position.y, position.z);
         cell.Setup(position, rotation2, generated);
